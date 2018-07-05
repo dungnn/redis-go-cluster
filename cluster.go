@@ -132,7 +132,6 @@ func (cluster *Cluster) Do(cmd string, args ...interface{}) (interface{}, error)
 	if err != nil {
 		return nil, fmt.Errorf("Do: %v", err)
 	}
-
 	reply, err := node.do(cmd, args...)
 	if err != nil {
 		return nil, fmt.Errorf("Do: %s %v", cmd, err)
@@ -141,8 +140,10 @@ func (cluster *Cluster) Do(cmd string, args ...interface{}) (interface{}, error)
 	resp := checkReply(reply)
 
 	switch resp {
-	case kRespOK, kRespError:
+	case kRespOK:
 		return reply, nil
+	case kRespError:
+		return nil, reply.(redisError)
 	case kRespMove:
 		return cluster.handleMove(node, reply.(redisError).Error(), cmd, args)
 	case kRespAsk:
